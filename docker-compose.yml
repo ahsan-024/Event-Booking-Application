@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: event-booking-app
+    container_name: event-booking-app
+    restart: unless-stopped
+    ports:
+      - "8003:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+    depends_on:
+      - db
+    networks:
+      - event-booking-network
+
+  db:
+    image: mysql:8.0
+    container_name: event-booking-db
+    restart: unless-stopped
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-event_booking}
+      MYSQL_USER: ${DB_USERNAME:-event_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - event-booking-network
+
+networks:
+  event-booking-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
